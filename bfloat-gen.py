@@ -1,7 +1,15 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
 """
 Usage:
+    This will work:
+    uv run --with transformers==4.44.2 --with torch --with accelerate bfloat-gen.py
 
-    uv run bfloat-gen.py
+    These will fail:
+    uv run --with transformers==4.45.0 --with torch --with accelerate bfloat-gen.py
+    uv run --with transformers==4.56.2 --with torch --with accelerate bfloat-gen.py
 """
 
 import torch
@@ -19,16 +27,23 @@ def run_repro():
     print(f"transformers version: {transformers.__version__}")
     print(f"loading model '{MODEL_ID}' with dtype={DTYPE} on device='{DEVICE}'...")
 
+    if transformers.__version__ >= "4.56.2":
+        dtype_spec = {"dtype": DTYPE}
+    else:
+        dtype_spec = {"torch_dtype": DTYPE}
+
+
     # 1. load model and tokenizer, forcing bfloat16 and cpu execution
     try:
         tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_ID,
-            dtype=DTYPE,
+            **dtype_spec,
             device_map=DEVICE,
         )
         model.eval()
-    except Exception:
+    except Exception as e:
+        print(f"Error loading model: {e}")
         return
 
     print("model loaded successfully.")
