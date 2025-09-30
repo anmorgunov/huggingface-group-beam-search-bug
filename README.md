@@ -47,7 +47,7 @@ at v4.51.0 the code was cleaned from unnecessary cloning, but upcasting remained
 (3673) next_token_logits = outputs.logits[batch_group_indices, -1, :].to(
                     dtype=torch.float32, device=input_ids.device
                 )
-``
+```
 
 
 ## The proposed fix
@@ -55,6 +55,7 @@ at v4.51.0 the code was cleaned from unnecessary cloning, but upcasting remained
 the fix is a one-line, surgical change in the `_group_beam_search` method of `generation/utils.py`. it involves casting the processed scores back to the destination tensor's `dtype` before the assignment.
 
 **from (bugged):**
+
 ```python
 (3689) processed_score[batch_group_indices] = next_token_scores_processed
 ```
